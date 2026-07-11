@@ -1,6 +1,8 @@
-// Proxy seguro hacia Hugging Face Inference Providers.
-// El token de HF vive SOLO en la variable de entorno HF_TOKEN de Netlify,
+// Proxy seguro hacia la API de Groq.
+// La clave vive SOLO en la variable de entorno GROQ_API_KEY de Netlify,
 // nunca llega al navegador del usuario.
+// Groq tiene un nivel gratuito real (limitado por velocidad de peticiones,
+// no por una cuota mensual que se agota como la de Hugging Face).
 
 const ALLOWED_MODELS = new Set([
   "openai/gpt-oss-20b",   // Pollant 1.0
@@ -38,17 +40,17 @@ exports.handler = async (event) => {
     return { statusCode: 400, headers, body: JSON.stringify({ error: "Faltan mensajes" }) };
   }
 
-  const token = process.env.HF_TOKEN;
+  const token = process.env.GROQ_API_KEY;
   if (!token) {
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ error: "Falta configurar la variable de entorno HF_TOKEN en Netlify." }),
+      body: JSON.stringify({ error: "Falta configurar la variable de entorno GROQ_API_KEY en Netlify." }),
     };
   }
 
   try {
-    const upstream = await fetch("https://router.huggingface.co/v1/chat/completions", {
+    const upstream = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -68,13 +70,13 @@ exports.handler = async (event) => {
       return {
         statusCode: upstream.status,
         headers,
-        body: JSON.stringify({ error: data.error || "Error de Hugging Face", details: data }),
+        body: JSON.stringify({ error: data.error || "Error de Groq", details: data }),
       };
     }
 
     const content = data.choices?.[0]?.message?.content ?? "";
     return { statusCode: 200, headers, body: JSON.stringify({ content }) };
   } catch (err) {
-    return { statusCode: 502, headers, body: JSON.stringify({ error: "Error al contactar con Hugging Face: " + String(err) }) };
+    return { statusCode: 502, headers, body: JSON.stringify({ error: "Error al contactar con Groq: " + String(err) }) };
   }
 };
