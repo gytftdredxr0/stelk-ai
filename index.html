@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stelk AI — Pollant &amp; Olcus</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0D1116;
+    --bg-raised:#151B22;
+    --bg-panel:#1A222B;
+    --line:#26313D;
+    --line-soft:#1E2831;
+    --text:#E8EDF3;
+    --text-muted:#8996A6;
+    --text-faint:#5B6675;
+    --pollant:#33C6B6;
+    --pollant-dim:rgba(51,198,182,0.14);
+    --olcus:#E3A23C;
+    --olcus-dim:rgba(227,162,60,0.14);
+    --danger:#E15B52;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1200px 700px at 15% -10%, rgba(51,198,182,0.07), transparent 60%),
+      radial-gradient(1000px 600px at 100% 0%, rgba(227,162,60,0.06), transparent 55%),
+      var(--bg);
+    color:var(--text);
+    font-family:'Inter',system-ui,sans-serif;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+  .wrap{width:100%;max-width:900px;padding:32px 20px 60px;}
+
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px;}
+  .brand{display:flex;align-items:center;gap:12px;}
+  .brand-mark{
+    width:42px;height:42px;border-radius:10px;
+    background:linear-gradient(135deg,var(--pollant),var(--olcus));
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Chakra Petch',sans-serif;font-weight:700;color:#0D1116;font-size:18px;
+    flex-shrink:0;
+  }
+  .brand-text h1{font-family:'Chakra Petch',sans-serif;font-weight:600;font-size:22px;letter-spacing:0.5px;margin:0;}
+  .brand-text p{margin:1px 0 0;font-size:12.5px;color:var(--text-muted);}
+  .info-btn{
+    background:var(--bg-panel);border:1px solid var(--line);color:var(--text-muted);
+    font-size:12.5px;padding:8px 14px;border-radius:999px;cursor:pointer;font-family:'Inter',sans-serif;
+    transition:border-color .15s,color .15s;
+  }
+  .info-btn:hover{border-color:var(--text-faint);color:var(--text);}
+
+  .engines{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;}
+  @media (max-width:620px){.engines{grid-template-columns:1fr;}}
+
+  .engine-card{
+    position:relative;background:var(--bg-raised);border:1.5px solid var(--line);border-radius:var(--radius);
+    padding:18px 18px 16px;cursor:pointer;transition:border-color .18s, transform .18s, background .18s;text-align:left;
+  }
+  .engine-card:hover{transform:translateY(-2px);}
+  .engine-card.active.pollant{border-color:var(--pollant);background:linear-gradient(180deg,var(--pollant-dim),transparent 70%),var(--bg-raised);}
+  .engine-card.active.olcus{border-color:var(--olcus);background:linear-gradient(180deg,var(--olcus-dim),transparent 70%),var(--bg-raised);}
+
+  .engine-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
+  .engine-name{font-family:'Chakra Petch',sans-serif;font-weight:600;font-size:17px;margin:0;}
+  .engine-tag{font-size:10.5px;text-transform:uppercase;letter-spacing:0.06em;font-weight:600;padding:3px 8px;border-radius:6px;white-space:nowrap;}
+  .engine-card.pollant .engine-tag{color:var(--pollant);background:var(--pollant-dim);}
+  .engine-card.olcus .engine-tag{color:var(--olcus);background:var(--olcus-dim);}
+
+  .engine-body{display:flex;align-items:center;gap:14px;margin-top:14px;}
+  .gauge-num{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--text-muted);}
+  .gauge-num b{color:var(--text);font-size:15px;}
+  .cost-line{font-size:12px;color:var(--text-faint);margin-top:6px;font-family:'JetBrains Mono',monospace;}
+
+  svg.gauge{flex-shrink:0;}
+  .gauge-track{fill:none;stroke:var(--line);stroke-width:8;}
+  .gauge-fill{fill:none;stroke-width:8;stroke-linecap:round;transition:stroke-dasharray .5s ease;}
+  .engine-card.pollant .gauge-fill{stroke:var(--pollant);}
+  .engine-card.olcus .gauge-fill{stroke:var(--olcus);}
+  .engine-card .gauge-fill.low{stroke:var(--danger);}
+
+  .chat-shell{background:var(--bg-raised);border:1.5px solid var(--line);border-radius:var(--radius);display:flex;flex-direction:column;overflow:hidden;}
+  .chat-shell.pollant{border-color:color-mix(in srgb, var(--pollant) 30%, var(--line));}
+  .chat-shell.olcus{border-color:color-mix(in srgb, var(--olcus) 30%, var(--line));}
+
+  .chat-head{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid var(--line-soft);}
+  .chat-head-left{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;}
+  .dot{width:7px;height:7px;border-radius:50%;background:#3FCF7F;}
+  .dot.loading{background:var(--olcus);animation:pulse 1s infinite;}
+  .dot.error{background:var(--danger);}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+
+  .messages{height:380px;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:14px;}
+  .messages::-webkit-scrollbar{width:8px;}
+  .messages::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px;}
+
+  .empty-state{margin:auto;text-align:center;color:var(--text-faint);font-size:13px;max-width:320px;line-height:1.5;}
+
+  .bubble{max-width:78%;padding:10px 14px;border-radius:12px;font-size:14.5px;line-height:1.5;white-space:pre-wrap;}
+  .bubble.user{align-self:flex-end;background:#232C36;border:1px solid var(--line);border-bottom-right-radius:3px;}
+  .bubble.assistant{align-self:flex-start;border:1px solid var(--line);border-bottom-left-radius:3px;background:var(--bg-panel);}
+  .bubble.assistant.pollant{border-left:3px solid var(--pollant);}
+  .bubble.assistant.olcus{border-left:3px solid var(--olcus);}
+  .bubble.error{border-left:3px solid var(--danger);color:var(--danger);}
+
+  .typing{display:inline-flex;gap:4px;align-items:center;}
+  .typing span{width:5px;height:5px;border-radius:50%;background:var(--text-muted);animation:blink 1.2s infinite;}
+  .typing span:nth-child(2){animation-delay:.2s;}
+  .typing span:nth-child(3){animation-delay:.4s;}
+  @keyframes blink{0%,80%,100%{opacity:.25;}40%{opacity:1;}}
+
+  .banner{padding:9px 18px;font-size:12.5px;border-top:1px solid var(--line-soft);display:none;align-items:center;gap:8px;}
+  .banner.show{display:flex;}
+  .banner.warn{color:var(--danger);background:rgba(225,91,82,0.08);}
+
+  .input-row{display:flex;gap:10px;padding:14px 16px;border-top:1px solid var(--line-soft);}
+  textarea{flex:1;resize:none;background:var(--bg-panel);border:1px solid var(--line);border-radius:10px;color:var(--text);font-family:'Inter',sans-serif;font-size:14px;padding:11px 13px;line-height:1.4;max-height:120px;}
+  textarea:focus{outline:none;border-color:var(--text-faint);}
+  button.send{background:var(--text);color:#0D1116;border:none;border-radius:10px;padding:0 20px;font-family:'Chakra Petch',sans-serif;font-weight:600;font-size:14px;cursor:pointer;transition:opacity .15s, transform .1s;}
+  button.send:disabled{opacity:0.35;cursor:not-allowed;}
+  button.send:not(:disabled):active{transform:scale(0.97);}
+
+  footer{margin-top:22px;text-align:center;font-size:11px;color:var(--text-faint);line-height:1.6;}
+  .reset-link{background:none;border:none;color:var(--text-faint);text-decoration:underline;cursor:pointer;font-size:11px;font-family:inherit;padding:0;}
+
+  .overlay{position:fixed;inset:0;background:rgba(5,7,10,0.6);display:none;align-items:center;justify-content:center;padding:20px;z-index:50;}
+  .overlay.show{display:flex;}
+  .panel{background:var(--bg-raised);border:1px solid var(--line);border-radius:var(--radius);max-width:440px;width:100%;padding:24px;}
+  .panel h3{font-family:'Chakra Petch',sans-serif;margin:0 0 10px;font-size:18px;}
+  .panel p{font-size:13.5px;color:var(--text-muted);line-height:1.6;margin:0 0 10px;}
+  .panel button{margin-top:10px;background:var(--bg-panel);border:1px solid var(--line);color:var(--text);padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand">
+      <div class="brand-mark">S</div>
+      <div class="brand-text">
+        <h1>Stelk AI</h1>
+        <p>Motores propios, en la nube</p>
+      </div>
+    </div>
+    <button class="info-btn" id="infoBtn">Cómo funciona</button>
+  </header>
+
+  <div class="engines">
+    <button class="engine-card pollant active" id="card-pollant" data-engine="pollant">
+      <div class="engine-top">
+        <p class="engine-name">Pollant 1.0</p>
+        <span class="engine-tag">Motor ligero</span>
+      </div>
+      <div class="engine-body">
+        <svg class="gauge" width="56" height="56" viewBox="0 0 56 56">
+          <circle class="gauge-track" cx="28" cy="28" r="23" />
+          <circle class="gauge-fill" id="gauge-pollant" cx="28" cy="28" r="23"
+            stroke-dasharray="144.5 144.5" transform="rotate(-90 28 28)" />
+        </svg>
+        <div class="gauge-num"><b id="credits-pollant">200</b> / 200<br>créditos</div>
+      </div>
+      <div class="cost-line">10 créditos / prompt</div>
+    </button>
+
+    <button class="engine-card olcus" id="card-olcus" data-engine="olcus">
+      <div class="engine-top">
+        <p class="engine-name">Olcus 2.1</p>
+        <span class="engine-tag">Motor avanzado</span>
+      </div>
+      <div class="engine-body">
+        <svg class="gauge" width="56" height="56" viewBox="0 0 56 56">
+          <circle class="gauge-track" cx="28" cy="28" r="23" />
+          <circle class="gauge-fill" id="gauge-olcus" cx="28" cy="28" r="23"
+            stroke-dasharray="144.5 144.5" transform="rotate(-90 28 28)" />
+        </svg>
+        <div class="gauge-num"><b id="credits-olcus">200</b> / 200<br>créditos</div>
+      </div>
+      <div class="cost-line">20 créditos / prompt</div>
+    </button>
+  </div>
+
+  <div class="chat-shell pollant" id="chatShell">
+    <div class="chat-head">
+      <div class="chat-head-left">
+        <span class="dot" id="statusDot"></span>
+        <span id="statusText">Pollant 1.0 · listo</span>
+      </div>
+    </div>
+
+    <div class="messages" id="messages">
+      <div class="empty-state" id="emptyState">Escribe algo abajo. Pollant 1.0 responde rápido y gasta 10 créditos por mensaje; Olcus 2.1 razona con más profundidad y gasta 20.</div>
+    </div>
+
+    <div class="banner warn" id="creditBanner">
+      Sin créditos suficientes en este motor. Cambia de motor o reinicia la demo abajo.
+    </div>
+
+    <div class="input-row">
+      <textarea id="promptInput" rows="1" placeholder="Escribe tu mensaje…"></textarea>
+      <button class="send" id="sendBtn">Enviar</button>
+    </div>
+  </div>
+
+  <footer>
+    Los motores de Stelk AI se ejecutan en la nube a través de nuestra propia función segura — tu clave de acceso nunca viaja al navegador.<br>
+    <button class="reset-link" id="resetBtn">Reiniciar créditos de la demo</button>
+  </footer>
+</div>
+
+<div class="overlay" id="infoOverlay">
+  <div class="panel">
+    <h3>Cómo funciona Stelk AI</h3>
+    <p><b>Pollant 1.0</b> es el motor ligero: responde rápido, ideal para tareas cortas y cotidianas. Cuesta 10 créditos por mensaje enviado.</p>
+    <p><b>Olcus 2.1</b> es el motor avanzado: piensa con más profundidad para tareas complejas. Cuesta 20 créditos por mensaje enviado.</p>
+    <p>Cada motor tiene su propia reserva de 200 créditos, totalmente independiente entre sí: usar uno no descuenta del otro.</p>
+    <p>Ambos motores corren en la nube a través de una función serverless propia, que mantiene en secreto la clave de acceso.</p>
+    <button id="closeInfo">Entendido</button>
+  </div>
+</div>
+
+<script>
+const ENGINES = {
+  pollant: {
+    label: "Pollant 1.0",
+    modelId: "openai/gpt-oss-20b",
+    cost: 10,
+    maxTokens: 400,
+    systemPrompt: "Eres Pollant 1.0, el motor ligero y rápido de Stelk AI. Responde de forma breve, clara y útil en español, salvo que te pidan otro idioma.",
+  },
+  olcus: {
+    label: "Olcus 2.1",
+    modelId: "openai/gpt-oss-120b",
+    cost: 20,
+    maxTokens: 800,
+    systemPrompt: "Eres Olcus 2.1, el motor avanzado de Stelk AI, capaz de razonar con profundidad y precisión. Responde en español salvo que te pidan otro idioma.",
+  },
+};
+
+const STORAGE_PREFIX = "stelk_credits_";
+const START_CREDITS = 200;
+const GAUGE_CIRCUMFERENCE = 2 * Math.PI * 23;
+const ENDPOINT = "/.netlify/functions/chat";
+
+const state = {
+  activeEngine: "pollant",
+  credits: { pollant: loadCredits("pollant"), olcus: loadCredits("olcus") },
+  history: { pollant: [], olcus: [] },
+  generating: false,
+};
+
+function loadCredits(id){
+  const raw = localStorage.getItem(STORAGE_PREFIX + id);
+  const n = raw === null ? START_CREDITS : parseInt(raw, 10);
+  return Number.isFinite(n) ? n : START_CREDITS;
+}
+function saveCredits(id){ localStorage.setItem(STORAGE_PREFIX + id, String(state.credits[id])); }
+
+const els = {
+  cardPollant: document.getElementById("card-pollant"),
+  cardOlcus: document.getElementById("card-olcus"),
+  gaugePollant: document.getElementById("gauge-pollant"),
+  gaugeOlcus: document.getElementById("gauge-olcus"),
+  creditsPollant: document.getElementById("credits-pollant"),
+  creditsOlcus: document.getElementById("credits-olcus"),
+  chatShell: document.getElementById("chatShell"),
+  statusDot: document.getElementById("statusDot"),
+  statusText: document.getElementById("statusText"),
+  messages: document.getElementById("messages"),
+  creditBanner: document.getElementById("creditBanner"),
+  promptInput: document.getElementById("promptInput"),
+  sendBtn: document.getElementById("sendBtn"),
+  resetBtn: document.getElementById("resetBtn"),
+  infoBtn: document.getElementById("infoBtn"),
+  infoOverlay: document.getElementById("infoOverlay"),
+  closeInfo: document.getElementById("closeInfo"),
+};
+
+function updateGauge(id){
+  const cfg = ENGINES[id];
+  const credits = state.credits[id];
+  const ratio = Math.max(0, Math.min(1, credits / START_CREDITS));
+  const fillLen = GAUGE_CIRCUMFERENCE * ratio;
+  const circle = id === "pollant" ? els.gaugePollant : els.gaugeOlcus;
+  circle.setAttribute("stroke-dasharray", `${fillLen} ${GAUGE_CIRCUMFERENCE}`);
+  circle.classList.toggle("low", credits < cfg.cost);
+  (id === "pollant" ? els.creditsPollant : els.creditsOlcus).textContent = credits;
+}
+
+function setActiveEngine(id){
+  state.activeEngine = id;
+  els.cardPollant.classList.toggle("active", id === "pollant");
+  els.cardOlcus.classList.toggle("active", id === "olcus");
+  els.chatShell.classList.remove("pollant", "olcus");
+  els.chatShell.classList.add(id);
+  renderStatus();
+  renderMessages();
+  renderCreditBanner();
+}
+
+function renderStatus(){
+  const id = state.activeEngine;
+  els.statusDot.className = "dot" + (state.generating ? " loading" : "");
+  els.statusText.textContent = `${ENGINES[id].label} · ${state.generating ? "generando…" : "listo"}`;
+}
+
+function renderMessages(){
+  const id = state.activeEngine;
+  const hist = state.history[id];
+  els.messages.innerHTML = "";
+  if (hist.length === 0){
+    const empty = document.createElement("div");
+    empty.className = "empty-state";
+    empty.textContent = id === "pollant"
+      ? "Pollant 1.0 responde rápido y gasta 10 créditos por mensaje enviado."
+      : "Olcus 2.1 razona con más profundidad y gasta 20 créditos por mensaje enviado.";
+    els.messages.appendChild(empty);
+    return;
+  }
+  hist.forEach(m => { if (m.role !== "system") appendBubble(m.role, m.content, false); });
+  els.messages.scrollTop = els.messages.scrollHeight;
+}
+
+function appendBubble(role, text, scroll = true){
+  const b = document.createElement("div");
+  b.className = "bubble " + role + (role === "assistant" ? " " + state.activeEngine : "");
+  b.textContent = text;
+  els.messages.appendChild(b);
+  if (scroll) els.messages.scrollTop = els.messages.scrollHeight;
+  return b;
+}
+
+function appendTyping(){
+  const b = document.createElement("div");
+  b.className = "bubble assistant " + state.activeEngine;
+  b.innerHTML = '<span class="typing"><span></span><span></span><span></span></span>';
+  els.messages.appendChild(b);
+  els.messages.scrollTop = els.messages.scrollHeight;
+  return b;
+}
+
+function renderCreditBanner(){
+  const id = state.activeEngine;
+  const short = state.credits[id] < ENGINES[id].cost;
+  els.creditBanner.classList.toggle("show", short);
+  els.sendBtn.disabled = short || state.generating;
+}
+
+async function sendPrompt(){
+  const engineId = state.activeEngine;
+  const cfg = ENGINES[engineId];
+  const text = els.promptInput.value.trim();
+  if (!text || state.generating) return;
+  if (state.credits[engineId] < cfg.cost){ renderCreditBanner(); return; }
+
+  state.credits[engineId] -= cfg.cost;
+  saveCredits(engineId);
+  updateGauge(engineId);
+  renderCreditBanner();
+
+  document.getElementById("emptyState")?.remove();
+  appendBubble("user", text);
+  els.promptInput.value = "";
+  autoResize();
+
+  const hist = state.history[engineId];
+  if (hist.length === 0) hist.push({ role: "system", content: cfg.systemPrompt });
+  hist.push({ role: "user", content: text });
+
+  state.generating = true;
+  els.sendBtn.disabled = true;
+  renderStatus();
+  const typingBubble = appendTyping();
+
+  try{
+    const res = await fetch(ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model: cfg.modelId, messages: hist, max_tokens: cfg.maxTokens }),
+    });
+    const data = await res.json();
+    typingBubble.remove();
+    if (!res.ok){
+      const msg = (data && data.error && (data.error.message || data.error)) || "Error desconocido";
+      const errBubble = appendBubble("assistant error", "No se pudo generar respuesta: " + msg);
+      errBubble.classList.add("error");
+    } else {
+      appendBubble("assistant", data.content || "(sin respuesta)");
+      hist.push({ role: "assistant", content: data.content || "" });
+    }
+  }catch(err){
+    typingBubble.remove();
+    appendBubble("assistant error", "Error de conexión: " + err.message);
+  }finally{
+    state.generating = false;
+    renderCreditBanner();
+    renderStatus();
+  }
+}
+
+function autoResize(){
+  els.promptInput.style.height = "auto";
+  els.promptInput.style.height = Math.min(120, els.promptInput.scrollHeight) + "px";
+}
+
+els.cardPollant.addEventListener("click", () => setActiveEngine("pollant"));
+els.cardOlcus.addEventListener("click", () => setActiveEngine("olcus"));
+els.sendBtn.addEventListener("click", sendPrompt);
+els.promptInput.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey){ e.preventDefault(); sendPrompt(); } });
+els.promptInput.addEventListener("input", autoResize);
+
+els.resetBtn.addEventListener("click", () => {
+  state.credits.pollant = START_CREDITS;
+  state.credits.olcus = START_CREDITS;
+  saveCredits("pollant"); saveCredits("olcus");
+  updateGauge("pollant"); updateGauge("olcus");
+  renderCreditBanner();
+});
+
+els.infoBtn.addEventListener("click", () => els.infoOverlay.classList.add("show"));
+els.closeInfo.addEventListener("click", () => els.infoOverlay.classList.remove("show"));
+els.infoOverlay.addEventListener("click", (e) => { if (e.target === els.infoOverlay) els.infoOverlay.classList.remove("show"); });
+
+updateGauge("pollant");
+updateGauge("olcus");
+setActiveEngine("pollant");
+</script>
+</body>
+</html>
