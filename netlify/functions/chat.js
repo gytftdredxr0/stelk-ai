@@ -1,6 +1,10 @@
+// Proxy seguro hacia Hugging Face Inference Providers.
+// El token de HF vive SOLO en la variable de entorno HF_TOKEN de Netlify,
+// nunca llega al navegador del usuario.
+
 const ALLOWED_MODELS = new Set([
-  "openai/gpt-oss-20b",
-  "openai/gpt-oss-120b",
+  "openai/gpt-oss-20b",   // Pollant 1.0
+  "openai/gpt-oss-120b",  // Olcus 2.1
 ]);
 
 exports.handler = async (event) => {
@@ -53,7 +57,7 @@ exports.handler = async (event) => {
       body: JSON.stringify({
         model,
         messages,
-        max_tokens: Math.min(max_tokens || 500, 1024),
+        max_tokens: Math.min(max_tokens || 500, 4096),
         temperature: 0.7,
       }),
     });
